@@ -12,7 +12,7 @@ public class FileUtility {
         }
     }
 
-    public static void createDirectory(String dirName) throws IOException {
+    public static void createDirectory(String dirName) {
         File file = new File(dirName);
         if (!file.exists()) {
             file.mkdir();
@@ -45,7 +45,7 @@ public class FileUtility {
         // /==========/
         try(DataOutputStream os = new DataOutputStream(socket.getOutputStream())) {
             byte [] buffer = new byte[8192];
-            os.writeUTF(file.getName());
+            //os.writeUTF(file.getName());
             System.out.print("/");
             while (is.available() > 0) {
                 int readBytes = is.read(buffer);
@@ -68,6 +68,6 @@ public class FileUtility {
 //        long end = System.currentTimeMillis();
 //        System.out.println("time: " + (end - start) + " ms.");
         sendFile(new Socket("localhost", 8189),
-                new File("./cloud_common/space.txt"));
+                new File("./cloud_common/1.txt"));
     }
 }
