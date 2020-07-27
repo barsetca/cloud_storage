@@ -15,16 +15,16 @@ public class Controller implements Initializable {
     public TextField txt;
     public Button send;
     private Socket socket;
-    private DataInputStream is;
-    private DataOutputStream os;
+    private DataInputStream dis;
+    private DataOutputStream dos;
     private final String clientFilesPath = "./cloud_common/src/main/resources/clientFiles";
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         try {
             socket = new Socket("localhost", 8189);
-            is = new DataInputStream(socket.getInputStream());
-            os = new DataOutputStream(socket.getOutputStream());
+            dis = new DataInputStream(socket.getInputStream());
+            dos = new DataOutputStream(socket.getOutputStream());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -41,24 +41,24 @@ public class Controller implements Initializable {
         String [] op = command.split(" ");
         if (op[0].equals("./download")) {
             try {
-                os.writeUTF(op[0]);
-                os.writeUTF(op[1]);
-                String response = is.readUTF();
+                dos.writeUTF(op[0]);
+                dos.writeUTF(op[1]);
+                String response = dis.readUTF();
                 System.out.println("resp: " + response);
                 if (response.equals("OK")) {
                     File file = new File(clientFilesPath + "/" + op[1]);
                     if (!file.exists()) {
                         file.createNewFile();
                     }
-                    long len = is.readLong();
+                    long len = dis.readLong();
                     byte [] buffer = new byte[1024];
                     try(FileOutputStream fos = new FileOutputStream(file)) {
                         if (len < 1024) {
-                            int count = is.read(buffer);
+                            int count = dis.read(buffer);
                             fos.write(buffer, 0, count);
                         } else {
                             for (long i = 0; i <= len / 1024; i++) {
-                                int count = is.read(buffer);
+                                int count = dis.read(buffer);
                                 fos.write(buffer, 0, count);
                             }
                         }
@@ -68,8 +68,36 @@ public class Controller implements Initializable {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        } else {
+        } else if (op[0].equals("./upload")) {
             // TODO: 7/23/2020 upload
+            System.out.println("Insert full path to the file");
+
+            File file = new File(clientFilesPath + "/" + op[1]);
+            if (!file.exists()){
+                System.out.println("File " + file.getAbsolutePath() + " is not exists");
+
+            }
+
+            try( InputStream is = new FileInputStream(file)) {
+                dos.writeUTF(op[0]);
+                dos.writeUTF(op[1]);
+                long len = file.length();
+                dos.writeLong(len);
+                byte[] buffer = new byte[8192];
+                System.out.print("/...");
+                while (is.available() > 0) {
+                    int readBytes = is.read(buffer);
+                    dos.write(buffer, 0, readBytes);
+                }
+                System.out.println("/");
+                String response = dis.readUTF();
+                if (response.equals("OK")) {
+                    System.out.println("File uploaded, resp: " + response);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
         }
     }
 }
