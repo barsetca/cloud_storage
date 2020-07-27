@@ -10,6 +10,7 @@ public class NIOBuffers {
     public static void main(String[] args) throws FileNotFoundException {
         RandomAccessFile rf =
                 new RandomAccessFile("./cloud_common/src/main/resources/nioDir/1.txt", "rw");
+
         FileChannel channel = rf.getChannel();
         ByteBuffer buffer = ByteBuffer.allocate(5);
         for (int i = 0; i < 5; i++) {

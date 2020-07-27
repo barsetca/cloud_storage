@@ -70,7 +70,6 @@ public class Controller implements Initializable {
             }
         } else if (op[0].equals("./upload")) {
             // TODO: 7/23/2020 upload
-            System.out.println("Insert full path to the file");
 
             File file = new File(clientFilesPath + "/" + op[1]);
             if (!file.exists()){
@@ -79,10 +78,17 @@ public class Controller implements Initializable {
             }
 
             try( InputStream is = new FileInputStream(file)) {
-                dos.writeUTF(op[0]);
-                dos.writeUTF(op[1]);
+//                dos.writeUTF(op[0]);
+//                dos.writeUTF(op[1]);
+                dos.writeByte(25);
+                byte[] fileName = op[1].getBytes();
+                dos.writeInt(fileName.length);
+                System.out.println(fileName.length);
+                dos.writeBytes(op[1]);
                 long len = file.length();
+                System.out.println(file.length());
                 dos.writeLong(len);
+
                 byte[] buffer = new byte[8192];
                 System.out.print("/...");
                 while (is.available() > 0) {
@@ -90,10 +96,11 @@ public class Controller implements Initializable {
                     dos.write(buffer, 0, readBytes);
                 }
                 System.out.println("/");
-                String response = dis.readUTF();
-                if (response.equals("OK")) {
-                    System.out.println("File uploaded, resp: " + response);
-                }
+
+                //String response = dis.readUTF();
+//                if (response.equals("OK")) {
+//                    System.out.println("File uploaded, resp: " + response);
+//                }
             } catch (IOException e) {
                 e.printStackTrace();
             }

@@ -1,5 +1,8 @@
 package nio;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -12,6 +15,8 @@ import java.util.Iterator;
 public class NIOServer implements Runnable {
     private ServerSocketChannel server;
     private Selector selector;
+    private String serverFilePath = "./cloud_common/src/main/resources/serverFiles";
+    private static int cnt = 1;
 
     public NIOServer() throws IOException {
         server = ServerSocketChannel.open();
@@ -33,6 +38,9 @@ public class NIOServer implements Runnable {
                     iterator.remove();
                     if (key.isAcceptable()) {
                         System.out.println("client accepted");
+                        String userName = "user" + cnt;
+                        cnt++;
+                        serverFilePath += "/" + userName;
                         SocketChannel channel = ((ServerSocketChannel) key.channel()).accept();
                         channel.configureBlocking(false);
                         channel.register(selector, SelectionKey.OP_READ);
@@ -41,23 +49,67 @@ public class NIOServer implements Runnable {
                     if (key.isReadable()) {
                         // TODO: 7/23/2020 fileStorage handle
                         System.out.println("read key");
-                        ByteBuffer buffer = ByteBuffer.allocate(80);
-                        int count = ((SocketChannel)key.channel()).read(buffer);
+                        ByteBuffer buffer = ByteBuffer.allocate(1);
+                        int count = ((SocketChannel) key.channel()).read(buffer);
                         if (count == -1) {
                             key.channel().close();
                             break;
                         }
+
                         buffer.flip();
+                        byte command = buffer.get();
+                        if (command == 25) {
+
+
+                        buffer = ByteBuffer.allocate(4);
+                       ((SocketChannel) key.channel()).read(buffer);
+                        buffer.flip();
+                        int nameInt = buffer.getInt();
+                        System.out.println(nameInt);
+
+                        buffer = ByteBuffer.allocate(nameInt);
+                        ((SocketChannel) key.channel()).read(buffer);
+                        buffer.flip();
+
+
                         StringBuilder s = new StringBuilder();
                         while (buffer.hasRemaining()) {
-                            s.append((char)buffer.get());
+                            s.append((char) buffer.get());
                         }
-                        for (SelectionKey key1 : selector.keys()) {
-                            if (key1.channel() instanceof SocketChannel && key1.isReadable()) {
-                                ((SocketChannel) key1.channel()).write(ByteBuffer.wrap(s.toString().getBytes()));
+                        String fileName = s.toString();
+                        System.out.println(fileName);
+
+                        buffer = ByteBuffer.allocate(8);
+                        ((SocketChannel) key.channel()).read(buffer);
+                        buffer.flip();
+                        long fileLength = buffer.getLong();
+                        System.out.println(fileLength);
+
+                        File dir = new File(serverFilePath);
+                            if (!dir.exists()) {
+                                dir.mkdir();
                             }
+
+                        File file = new File(serverFilePath + "/" + fileName);
+                        if (!file.exists()) {
+                            file.createNewFile();
                         }
-                        System.out.println();
+
+                        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file));
+
+                        for (int i = 0; i < fileLength; i++) {
+                            buffer = ByteBuffer.allocate(1);
+                            ((SocketChannel) key.channel()).read(buffer);
+                            buffer.flip();
+                            byte byteFile = buffer.get();
+                            bos.write(byteFile);
+                        }
+
+                        System.out.println("File upload");
+                        bos.close();
+                        key.channel().close();
+                        break;
+                    }
                     }
                 }
             }
