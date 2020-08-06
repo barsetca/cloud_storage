@@ -41,30 +41,46 @@ public class Controller implements Initializable {
         String [] op = command.split(" ");
         if (op[0].equals("./download")) {
             try {
-                dos.writeUTF(op[0]);
-                dos.writeUTF(op[1]);
-                String response = dis.readUTF();
-                System.out.println("resp: " + response);
-                if (response.equals("OK")) {
+//                dos.writeUTF(op[0]);
+//                dos.writeUTF(op[1]);
+                dos.writeByte(35);
+                byte[] fileName = op[1].getBytes();
+                dos.writeInt(fileName.length);
+                System.out.println(fileName.length);
+                dos.writeBytes(op[1]);
+
+//                String response = dis.readUTF();
+//                System.out.println("resp: " + response);
+                //if (response.equals("OK")) {
                     File file = new File(clientFilesPath + "/" + op[1]);
+                System.out.println(file.getAbsolutePath());
+
                     if (!file.exists()) {
                         file.createNewFile();
-                    }
-                    long len = dis.readLong();
+                   }
+//                    long len = dis.readLong();
+//                System.out.println(len);
+                System.out.println(file.getAbsolutePath());
                     byte [] buffer = new byte[1024];
                     try(FileOutputStream fos = new FileOutputStream(file)) {
-                        if (len < 1024) {
-                            int count = dis.read(buffer);
-                            fos.write(buffer, 0, count);
-                        } else {
-                            for (long i = 0; i <= len / 1024; i++) {
-                                int count = dis.read(buffer);
-                                fos.write(buffer, 0, count);
-                            }
+                        while (dis.available() > 0) {
+                            int readBytes = dis.read(buffer);
+                            System.out.println(buffer);
+                            fos.write(buffer, 0, readBytes);
                         }
+//                        if (len < 1024) {
+//                            int count = dis.read(buffer);
+//                            fos.write(buffer, 0, count);
+//                        } else {
+//                            for (long i = 0; i <= len / 1024; i++) {
+//                                int count = dis.read(buffer);
+//                                fos.write(buffer, 0, count);
+//                            }
+//                        }
                     }
                     lv.getItems().add(op[1]);
-                }
+//                }
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -105,6 +121,9 @@ public class Controller implements Initializable {
                 e.printStackTrace();
             }
 
+        }
+        else {
+            System.out.println("Unknown command");
         }
     }
 }
