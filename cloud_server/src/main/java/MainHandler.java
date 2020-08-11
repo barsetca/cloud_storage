@@ -20,6 +20,12 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
             Files.write(Paths.get("serverFiles/" + fsm.getFileName()), fsm.getContent(), StandardOpenOption.CREATE);
         }
 
+        if (msg instanceof FileDeleteMessage) {
+            FileDeleteMessage fdm = (FileDeleteMessage) msg;
+            Files.deleteIfExists(Paths.get("serverFiles/" + fdm.getFileName()));
+        }
+
+
     }
 
     @Override

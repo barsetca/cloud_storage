@@ -66,9 +66,17 @@ public class Controller implements Initializable {
             FileSendMessage fsm = new FileSendMessage(path);
             sendMsg(fsm);
 
+        } else if (op[0].equals("./delete")) {
 
-        }
-        else {
+            FileDeleteMessage fdm = new FileDeleteMessage(op[1]);
+            System.out.println(fdm.getFileName());
+            sendMsg(fdm);
+//            AbstractMessage am = readMsg();
+//            if (am instanceof FileSendMessage) {
+//                FileSendMessage fsm = (FileSendMessage) am;
+//                Files.write(Paths.get("clientFiles/" + fsm.getFileName()), fsm.getContent(), StandardOpenOption.CREATE);
+//            }
+        } else {
             System.out.println("Unknown command");
         }
     }
