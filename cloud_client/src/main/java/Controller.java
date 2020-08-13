@@ -6,14 +6,15 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.net.Socket;
 import java.net.URL;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ResourceBundle;
+import java.util.concurrent.CountDownLatch;
 
 public class Controller implements Initializable {
 
@@ -24,13 +25,15 @@ public class Controller implements Initializable {
     private static ObjectEncoderOutputStream out;
     private static ObjectDecoderInputStream in;
     private final String clientFilesPath = "clientFiles";
+    //private static CountDownLatch cdl;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         try {
             socket = new Socket("localhost", 8189);
             out = new ObjectEncoderOutputStream(socket.getOutputStream());
-            in = new ObjectDecoderInputStream(socket.getInputStream(), 1024*1024*100);
+            in = new ObjectDecoderInputStream(socket.getInputStream(), 1024 * 1024 * 100);
+           // cdl = new CountDownLatch(1);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -44,44 +47,65 @@ public class Controller implements Initializable {
 
     // ./download fileName
     // ./upload fileName
-    public void sendCommand(ActionEvent actionEvent) throws IOException {
+    public void sendCommand(ActionEvent actionEvent) {
         String command = txt.getText();
-        String [] op = command.split(" ");
+        String[] op = command.split(" ");
         if (op[0].equals("./download")) {
 
             FileRequestMessage frm = new FileRequestMessage(op[1]);
             System.out.println(frm.getFileName());
             sendMsg(frm);
-            AbstractMessage am = readMsg();
-            if (am instanceof FileSendMessage){
-                FileSendMessage fsm = (FileSendMessage) am;
-                Files.write(Paths.get("clientFiles/" + fsm.getFileName()), fsm.getContent(), StandardOpenOption.CREATE);
-            }
 
+            new Thread(() -> {
+
+                try {
+                    int count = 0;
+                    while (true) {
+                        Object download = in.readObject();
+                        FileSendMessage fsm = (FileSendMessage) download;
+                        count++;
+                        if (fsm.partNumber == 1) {
+                            Files.write(Paths.get("clientFiles/" + fsm.fileName), fsm.partContent, StandardOpenOption.CREATE);
+                            System.out.println("Downloaded " + fsm.partNumber + "/" + fsm.partsCount);
+                        }
+                        if (fsm.partNumber > 1) {
+                            System.out.println("Downloaded " + fsm.partNumber + "/" + fsm.partsCount);
+                            Files.write(Paths.get("clientFiles/" + fsm.fileName), fsm.partContent, StandardOpenOption.APPEND);
+                        }
+                        if (fsm.partNumber == fsm.partsCount) {
+                            System.out.println("File " + fsm.fileName + " downloaded!");
+                            System.out.println(new File("clientFiles/" + fsm.fileName).length());
+                            System.out.println(count);
+                            break;
+                        }
+
+                    }
+                } catch (ClassNotFoundException | IOException e) {
+                    e.printStackTrace();
+                    socketClose();
+                }
+
+            }).start();
             lv.getItems().add(op[1]);
 
         } else if (op[0].equals("./upload")) {
-            Path path = Paths.get(clientFilesPath, op[1]);
-            System.out.println(path);
-            FileSendMessage fsm = new FileSendMessage(path);
-            sendMsg(fsm);
+//            Path path = Paths.get(clientFilesPath, op[1]);
+//            System.out.println(path);
+//            FileSendMessage fsm = new FileSendMessage(path);
+//            sendMsg(fsm);
 
         } else if (op[0].equals("./delete")) {
 
             FileDeleteMessage fdm = new FileDeleteMessage(op[1]);
             System.out.println(fdm.getFileName());
             sendMsg(fdm);
-//            AbstractMessage am = readMsg();
-//            if (am instanceof FileSendMessage) {
-//                FileSendMessage fsm = (FileSendMessage) am;
-//                Files.write(Paths.get("clientFiles/" + fsm.getFileName()), fsm.getContent(), StandardOpenOption.CREATE);
-//            }
+
         } else {
             System.out.println("Unknown command");
         }
     }
 
-    public static boolean sendMsg(AbstractMessage msg){
+    public static boolean sendMsg(AbstractMessage msg) {
         try {
             out.writeObject(msg);
             return true;
@@ -92,7 +116,7 @@ public class Controller implements Initializable {
         return false;
     }
 
-    public static AbstractMessage readMsg(){
+    public static AbstractMessage readMsg() {
         Object o = null;
         try {
             o = in.readObject();
@@ -102,7 +126,7 @@ public class Controller implements Initializable {
         return (AbstractMessage) o;
     }
 
-    public static void socketClose(){
+    public static void socketClose() {
         try {
             socket.close();
         } catch (IOException e) {

@@ -1,23 +1,15 @@
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-
 
 public class FileSendMessage extends AbstractMessage {
 
-    private String fileName;
-    private byte[] content;
+    String fileName;
+    int partNumber;
+    int partsCount;
+    byte[] partContent;
 
-    public FileSendMessage(Path path) throws IOException {
-        fileName = path.getFileName().toString();
-        content = Files.readAllBytes(path);
-    }
-
-    public String getFileName() {
-        return fileName;
-    }
-
-    public byte[] getContent() {
-        return content;
+    public FileSendMessage(String fileName, int partNumber, int partsCount, byte[] partContent) {
+        this.fileName = fileName;
+        this.partNumber = partNumber;
+        this.partsCount = partsCount;
+        this.partContent = partContent;
     }
 }
