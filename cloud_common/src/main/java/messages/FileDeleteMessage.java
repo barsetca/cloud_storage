@@ -1,4 +1,6 @@
-public class FileDeleteMessage extends AbstractMessage{
+package messages;
+
+public class FileDeleteMessage extends AbstractMessage {
 
     private String fileName;
 

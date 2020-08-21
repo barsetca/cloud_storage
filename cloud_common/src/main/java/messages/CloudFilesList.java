@@ -1,7 +1,8 @@
-import java.util.ArrayList;
+package messages;
+
 import java.util.List;
 
-public class CloudFilesList extends AbstractMessage{
+public class CloudFilesList extends AbstractMessage {
 
     private List<String> cloudFilesList;
 

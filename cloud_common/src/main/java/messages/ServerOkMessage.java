@@ -1,4 +1,6 @@
-public class ServerOkMessage extends AbstractMessage{
+package messages;
+
+public class ServerOkMessage extends AbstractMessage {
 
     private String msg;
     private boolean isOk;

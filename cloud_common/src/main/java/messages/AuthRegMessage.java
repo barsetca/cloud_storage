@@ -1,4 +1,6 @@
-public class AuthRegMessage extends AbstractMessage{
+package messages;
+
+public class AuthRegMessage extends AbstractMessage {
 
     private String login;
     private String password;

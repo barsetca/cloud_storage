@@ -1,4 +1,6 @@
-public class FileRequestMessage extends AbstractMessage{
+package messages;
+
+public class FileRequestMessage extends AbstractMessage {
 
     private String fileName;
 

@@ -1,6 +1,7 @@
 import io.netty.handler.codec.serialization.ObjectDecoderInputStream;
 import io.netty.handler.codec.serialization.ObjectEncoderOutputStream;
 import javafx.fxml.Initializable;
+import messages.AbstractMessage;
 
 import java.io.IOException;
 import java.net.Socket;

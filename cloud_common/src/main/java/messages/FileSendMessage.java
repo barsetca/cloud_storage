@@ -1,10 +1,11 @@
+package messages;
 
 public class FileSendMessage extends AbstractMessage {
 
-    String fileName;
-    int partNumber;
-    int partsCount;
-    byte[] partContent;
+    public String fileName;
+    public int partNumber;
+    public int partsCount;
+    public byte[] partContent;
 
     public FileSendMessage(String fileName, int partNumber, int partsCount, byte[] partContent) {
         this.fileName = fileName;

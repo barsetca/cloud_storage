@@ -7,6 +7,9 @@ import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import messages.AbstractMessage;
+import messages.AuthRegMessage;
+import messages.ServerOkMessage;
 
 import java.io.IOException;
 
@@ -46,26 +49,30 @@ public class AuthRegController extends AbstractController {
     }
 
     public void openNewMainScene(AuthRegMessage arm) {
+
         sendMsg(arm);
         AbstractMessage am = readMsg();
         if (am instanceof ServerOkMessage) {
             ServerOkMessage som = (ServerOkMessage) am;
             if (som.isOk()) {
-                System.out.println(som.getMsg());
-                auth.getScene().getWindow().hide();
-                FXMLLoader loader = new FXMLLoader();
-                loader.setLocation(getClass().getResource("main.fxml"));
                 try {
-                    loader.load();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    System.out.println(som.getMsg());
+                    auth.getScene().getWindow().hide();
+                    FXMLLoader loader = new FXMLLoader();
+                    loader.setLocation(getClass().getResource("main.fxml"));
+                    try {
+                        loader.load();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    Parent root = loader.getRoot();
+                    Stage stage = new Stage();
+                    stage.setScene(new Scene(root));
+                    stage.setTitle(arm.getLogin());
+                    stage.showAndWait();
+                }catch (Exception e) {
+                    System.out.println("Exit");
                 }
-                Parent root = loader.getRoot();
-                Stage stage = new Stage();
-                stage.setScene(new Scene(root));
-                stage.setTitle(arm.getLogin());
-                stage.showAndWait();
-
             } else {
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
                 alert.setHeaderText("Result: ");
