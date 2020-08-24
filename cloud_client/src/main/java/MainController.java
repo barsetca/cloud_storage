@@ -195,19 +195,14 @@ public class MainController extends AbstractController {
     }
 
     private void updateCloudFilesList() {
-        System.out.println("Обновляем лист");
         cloudTable.getItems().clear();
         FilesListRequest rfl = new FilesListRequest();
         sendMsg(rfl);
         try {
             Object list = in.readObject();
-            System.out.println("получаем лист");
             if (list instanceof CloudInfoList) {
-                System.out.println("получаем лист");
                 CloudInfoList cfl = (CloudInfoList) list;
-                System.out.println(cfl.getListFileInfo().size());
                 List<FileInfo> cloudFilesList = cfl.getListFileInfo();
-                cloudFilesList.forEach(s -> System.out.println(s.getFileName() + "/" + s.getSize()));
                 cloudTable.getItems().addAll(cloudFilesList);
                 cloudTable.sort();
             }

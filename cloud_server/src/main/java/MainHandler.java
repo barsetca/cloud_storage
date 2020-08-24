@@ -66,8 +66,9 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
         if (msg instanceof FileRequestMessage) {
             new Thread(() -> {
                 FileRequestMessage frm = (FileRequestMessage) msg;
-                if (Files.exists(Paths.get(SERVER_DIR + userName + "/" + frm.getFileName()))) {
-                    File file = new File(SERVER_DIR + userName + "/" + frm.getFileName());
+                Path filePath = Paths.get(pathUserDir.toString(), frm.getFileName());
+                if (Files.exists(filePath)) {
+                    File file = new File(filePath.toString());
                     int bufSize = 1024 * 1024 * 10;
                     int partsCount = new Long(file.length() / bufSize).intValue();
 
@@ -88,7 +89,6 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
                             Thread.sleep(10);
                             System.out.println("Send part number " + fsm.partNumber);
                         }
-
                     } catch (IOException | InterruptedException e) {
                         closeConnection(ctx, e.getMessage());
                     }
@@ -98,15 +98,12 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
         if (msg instanceof FileSendMessage) {
             try {
                 FileSendMessage fsm = (FileSendMessage) msg;
-                String fileName = SERVER_DIR + userName + "/" + fsm.fileName;
-                Path filePath = Paths.get(fileName);
-
+                Path filePath = Paths.get(pathUserDir.toString(), fsm.fileName);
 
                 if (fsm.partNumber == 1) {
                     if (Files.deleteIfExists(filePath)) {
-                        System.out.println("Удалили существующий файл");
+                        System.out.println("Deleted existing file " + fsm.fileName);
                     }
-
                     Files.write(filePath, fsm.partContent, StandardOpenOption.CREATE);
                     System.out.println("Uploaded " + fsm.partNumber + "/" + fsm.partsCount);
                 }
@@ -116,9 +113,8 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
                 }
                 if (fsm.partNumber == fsm.partsCount) {
                     System.out.println("File " + fsm.fileName + " uploaded!");
-                    System.out.println(new File(fileName).length());
+                    System.out.println(new File(filePath.toString()).length());
                     ctx.flush();
-
                 }
 
             } catch (IOException e) {
@@ -127,27 +123,25 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
         }
 
         if (msg instanceof FilesListRequest) {
-
-            System.out.println("RequestFilesList");
             List<FileInfo> cloudList = new ArrayList<>();
 
-            File dir = new File(SERVER_DIR + userName + "/");
+            File dir = new File(pathUserDir.toString());
             String[] dirList = dir.list();
             if (dirList != null) {
                 for (String fileName : dirList) {
-                    cloudList.add(new FileInfo(Paths.get(SERVER_DIR, userName, fileName).normalize().toAbsolutePath()));
+                    cloudList.add(new FileInfo(Paths.get(pathUserDir.toString(), fileName).normalize().toAbsolutePath()));
                 }
             }
             CloudInfoList cil = new CloudInfoList(cloudList);
             ctx.writeAndFlush(cil);
             cil.getListFileInfo().forEach(fi -> System.out.println("Name " + fi.getFileName() + " size " + fi.getSize()));
-            System.out.println("Список отправлен");
+            System.out.println("File list sent");
 
         }
 
         if (msg instanceof FileDeleteMessage) {
             FileDeleteMessage fdm = (FileDeleteMessage) msg;
-            Files.deleteIfExists(Paths.get(SERVER_DIR + userName + "/" + fdm.getFileName()));
+            Files.deleteIfExists(Paths.get(pathUserDir.toString(), fdm.getFileName()));
         }
     }
 
@@ -165,7 +159,7 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
     }
 
     private void createUserFolder(String userName) {
-        pathUserDir = Paths.get(SERVER_DIR + userName + "/");
+        pathUserDir = Paths.get(SERVER_DIR, userName);
         try {
             if (!Files.exists(pathUserDir)) {
                 Files.createDirectory(pathUserDir);
@@ -187,7 +181,5 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
             activeUserStorage.remove(userName);
             ctx.close();
         }
-
     }
-
 }
