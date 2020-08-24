@@ -19,6 +19,7 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
     public static ConcurrentHashMap<String, String> userStorage = new ConcurrentHashMap<>();
     public static ConcurrentHashMap<String, String> activeUserStorage = new ConcurrentHashMap<>();
     private String userName;
+    private Path pathUserDir;
     private static final String SERVER_DIR = "serverFiles/";
 
     static {
@@ -35,7 +36,7 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
             String login = arm.getLogin();
             String password = arm.getPassword();
             String storagePass = userStorage.get(login);
-            System.out.println(arm.getLogin());
+            System.out.println("Received auth/reg request from client login: " + arm.getLogin());
             if (arm.isNew()) {
                 if (storagePass == null) {
                     userStorage.put(login, password);
@@ -128,15 +129,18 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
         if (msg instanceof FilesListRequest) {
 
             System.out.println("RequestFilesList");
-            List<String> cloudFilesList = new ArrayList<>();
+            List<FileInfo> cloudList = new ArrayList<>();
 
             File dir = new File(SERVER_DIR + userName + "/");
             String[] dirList = dir.list();
             if (dirList != null) {
-                cloudFilesList.addAll(Arrays.asList(dirList));
+                for (String fileName : dirList) {
+                    cloudList.add(new FileInfo(Paths.get(SERVER_DIR, userName, fileName).normalize().toAbsolutePath()));
+                }
             }
-            CloudFilesList cfl = new CloudFilesList(cloudFilesList);
-            ctx.writeAndFlush(cfl);
+            CloudInfoList cil = new CloudInfoList(cloudList);
+            ctx.writeAndFlush(cil);
+            cil.getListFileInfo().forEach(fi -> System.out.println("Name " + fi.getFileName() + " size " + fi.getSize()));
             System.out.println("Список отправлен");
 
         }
@@ -161,10 +165,10 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
     }
 
     private void createUserFolder(String userName) {
-        Path clientFilesPath = Paths.get(SERVER_DIR + userName + "/");
+        pathUserDir = Paths.get(SERVER_DIR + userName + "/");
         try {
-            if (!Files.exists(clientFilesPath)) {
-                Files.createDirectory(clientFilesPath);
+            if (!Files.exists(pathUserDir)) {
+                Files.createDirectory(pathUserDir);
             }
         } catch (IOException e) {
             System.out.println(e.getMessage());

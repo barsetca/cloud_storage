@@ -35,16 +35,16 @@
     </HBox>
 
     <HBox>
-        <ComboBox fx:id="disks" onAction="#cmbSelectDisk" />
-        <TextField fx:id="mainTextField" editable="false" prefHeight="25.0" prefWidth="537.0" VBox.vgrow="ALWAYS" />
+        <ComboBox fx:id="clientDisks" onAction="#cmbSelectDisk" />
+        <TextField fx:id="clientTextField" editable="false" prefHeight="25.0" prefWidth="537.0" VBox.vgrow="ALWAYS" />
         <Button onAction="#btnPathUp" text="Up" />
     </HBox>
 
     <HBox prefHeight="305.0" prefWidth="938.0" spacing="10" VBox.vgrow="ALWAYS">
-        <TableView fx:id="tv" prefHeight="295.0" prefWidth="795.0" HBox.hgrow="ALWAYS" />
+        <TableView fx:id="clientTable" prefHeight="295.0" prefWidth="1065.0" HBox.hgrow="ALWAYS" />
 <!--        <ListView fx:id="lv" onMouseClicked="#clearSelectionServerList" prefHeight="439.0" prefWidth="459.0" HBox.hgrow="ALWAYS" />-->
-        <TableView fx:id="servtv" prefHeight="295.0" prefWidth="795.0" HBox.hgrow="ALWAYS" />
-        <ListView fx:id="serv" onMouseClicked="#clearSelectionLocalList" prefHeight="439.0" prefWidth="459.0" HBox.hgrow="ALWAYS" />
+        <TableView fx:id="cloudTable" onMouseClicked="#clearSelectionLocalList" prefHeight="295.0" prefWidth="795.0" HBox.hgrow="ALWAYS" />
+<!--        <ListView fx:id="serv" onMouseClicked="#clearSelectionLocalList" prefHeight="439.0" prefWidth="459.0" HBox.hgrow="ALWAYS" />-->
         <padding>
             <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
         </padding>

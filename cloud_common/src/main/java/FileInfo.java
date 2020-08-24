@@ -1,9 +1,13 @@
 import java.io.IOException;
+import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public class FileInfo {
-    public enum FileType{
+public class FileInfo implements Serializable {
+    static final long serialVersionUID = 1L;
+
+    public enum FileType implements Serializable {
+
         FILE("File"),
         DIRECTORY("Dir");
 
@@ -35,12 +39,6 @@ public class FileInfo {
             throw new RuntimeException("Failed path: " + path.toAbsolutePath().toString());
         }
 
-
-
-//        this.fileType = fileType;
-//
-
-
     }
 
     public String getFileName() {
@@ -55,15 +53,4 @@ public class FileInfo {
         return size;
     }
 
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
-
-    public void setFileType(FileType fileType) {
-        this.fileType = fileType;
-    }
-
-    public void setSize(long size) {
-        this.size = size;
-    }
-}
+   }
