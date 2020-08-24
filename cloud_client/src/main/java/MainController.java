@@ -1,13 +1,11 @@
+import fileInfo.FileInfo;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.event.ActionEvent;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
-import messages.FileDeleteMessage;
-import messages.FileRequestMessage;
-import messages.FileSendMessage;
-import messages.FilesListRequest;
+import messages.*;
 
 import java.io.File;
 import java.io.FileInputStream;

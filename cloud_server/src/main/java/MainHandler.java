@@ -1,3 +1,4 @@
+import fileInfo.FileInfo;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import messages.*;
