@@ -14,6 +14,7 @@ import java.net.URL;
 import java.nio.file.*;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
@@ -58,7 +59,6 @@ public class MainController extends AbstractController {
                 }
             }
         });
-
         updateSelectedClientDir(Paths.get(""));
         updateCloudFilesList();
     }
@@ -68,21 +68,28 @@ public class MainController extends AbstractController {
         String del;
         if (toDelete != null) {
             del = toDelete.getFileName();
-            FileDeleteMessage fdm = new FileDeleteMessage(del);
-            sendMsg(fdm);
-            updateCloudFilesList();
+            if (delConfirm(del + " from cloud folder")) {
+                FileDeleteMsg fdm = new FileDeleteMsg(del);
+                sendMsg(fdm);
+                updateCloudFilesList();
+            } else {
+                return;
+            }
         } else {
             del = getSelectedClientFileName();
             if (del == null) {
-                alertMsg();
+                alertMsg("No file selected");
                 return;
             }
             try {
                 String pathToDel = getCurrentClientPath();
                 Path toDel = Paths.get(pathToDel, del);
-                System.out.println(toDel.toString());
-                Files.deleteIfExists(toDel);
-                updateSelectedClientDir(Paths.get(pathToDel));
+                if (delConfirm(toDel.toString())) {
+                    Files.deleteIfExists(toDel);
+                    updateSelectedClientDir(Paths.get(pathToDel));
+                } else {
+                    return;
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -93,7 +100,7 @@ public class MainController extends AbstractController {
     public void uploadCommand(ActionEvent actionEvent) {
 
         if (getSelectedClientFileName() == null) {
-            alertMsg();
+            alertMsg("No file selected");
             return;
         }
         Path pathToUpload = Paths.get(getCurrentClientPath(), getSelectedClientFileName());
@@ -106,12 +113,11 @@ public class MainController extends AbstractController {
                 if (file.length() % bufSize != 0) {
                     partsCount++;
                 }
-                FileSendMessage fsm = new FileSendMessage(file.getName(), -1, partsCount, new byte[bufSize]);
+                FileSendMsg fsm = new FileSendMsg(file.getName(), -1, partsCount, new byte[bufSize]);
                 try (FileInputStream fis = new FileInputStream(file)) {
                     for (int i = 0; i < partsCount; i++) {
                         int read = fis.read(fsm.partContent);
                         fsm.partNumber = i + 1;
-
                         if (read < bufSize) {
                             fsm.partContent = Arrays.copyOfRange(fsm.partContent, 0, read);
                         }
@@ -126,29 +132,33 @@ public class MainController extends AbstractController {
             }
         });
         t.start();
+
         try {
             t.join();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        alertMsg("File uploaded!");
         updateCloudFilesList();
+
     }
+
 
     public void downloadCommand(ActionEvent actionEvent) {
 
         FileInfo toDownload = cloudTable.getSelectionModel().getSelectedItem();
         if (toDownload == null) {
-            alertMsg();
+            alertMsg("No file selected");
             return;
         }
-        FileRequestMessage frm = new FileRequestMessage(toDownload.getFileName());
+        FileRequestMsg frm = new FileRequestMsg(toDownload.getFileName());
         sendMsg(frm);
 
         Thread t = new Thread(() -> {
             try {
                 while (true) {
                     Object dl = in.readObject();
-                    FileSendMessage fsm = (FileSendMessage) dl;
+                    FileSendMsg fsm = (FileSendMsg) dl;
                     Path pathToDownload = Paths.get(getCurrentClientPath(), fsm.fileName);
                     if (fsm.partNumber == 1) {
                         if (Files.deleteIfExists(pathToDownload)) {
@@ -178,6 +188,7 @@ public class MainController extends AbstractController {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        alertMsg("File downloaded!");
         updateSelectedClientDir(Paths.get(getCurrentClientPath()));
     }
 
@@ -185,21 +196,24 @@ public class MainController extends AbstractController {
         Platform.exit();
     }
 
-    private void alertMsg() {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setHeaderText("Result: ");
-        alert.setContentText("No file selected");
-        alert.show();
+
+    private boolean delConfirm(String del) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Delete File");
+        alert.setHeaderText("Are you sure want to delete this file?");
+        alert.setContentText(del);
+        Optional<ButtonType> option = alert.showAndWait();
+        return option.get() == ButtonType.OK;
     }
 
     private void updateCloudFilesList() {
         cloudTable.getItems().clear();
-        FilesListRequest rfl = new FilesListRequest();
+        FilesListRequestMsg rfl = new FilesListRequestMsg();
         sendMsg(rfl);
         try {
             Object list = in.readObject();
-            if (list instanceof CloudInfoList) {
-                CloudInfoList cfl = (CloudInfoList) list;
+            if (list instanceof CloudInfoListSendMsg) {
+                CloudInfoListSendMsg cfl = (CloudInfoListSendMsg) list;
                 List<FileInfo> cloudFilesList = cfl.getListFileInfo();
                 cloudTable.getItems().addAll(cloudFilesList);
                 cloudTable.sort();
@@ -267,7 +281,11 @@ public class MainController extends AbstractController {
         if (!clientTable.isFocused()) {
             return null;
         }
-        return clientTable.getSelectionModel().getSelectedItem().getFileName();
+        FileInfo target = clientTable.getSelectionModel().getSelectedItem();
+        if (target == null) {
+            return null;
+        }
+        return target.getFileName();
     }
 
     public String getCurrentClientPath() {

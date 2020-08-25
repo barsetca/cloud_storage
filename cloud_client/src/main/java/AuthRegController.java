@@ -8,8 +8,8 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import messages.AbstractMessage;
-import messages.AuthRegMessage;
-import messages.ServerOkMessage;
+import messages.AuthRegMsg;
+import messages.ServerOkMsg;
 
 import java.io.IOException;
 
@@ -21,39 +21,36 @@ public class AuthRegController extends AbstractController {
     public Button reg;
 
     public void regCommand(ActionEvent actionEvent) {
-        AuthRegMessage arm = checkData();
+        AuthRegMsg arm = checkData();
         if (arm != null) {
             openNewMainScene(arm);
         }
     }
 
     public void authCommand(ActionEvent actionEvent) {
-        AuthRegMessage arm = checkData();
+        AuthRegMsg arm = checkData();
         if (arm != null) {
             arm.setNew(false);
             openNewMainScene(arm);
         }
     }
 
-    public AuthRegMessage checkData() {
+    public AuthRegMsg checkData() {
         String userLogin = login.getText().trim();
         String userPass = password.getText().trim();
         if (userLogin.isEmpty() || userPass.isEmpty()) {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setHeaderText("Result: ");
-            alert.setContentText("Fields login and password must be filled");
-            alert.show();
+            alertMsg("Fields login and password must be filled");
             return null;
         }
-        return new AuthRegMessage(userLogin, userPass, true);
+        return new AuthRegMsg(userLogin, userPass, true);
     }
 
-    public void openNewMainScene(AuthRegMessage arm) {
+    public void openNewMainScene(AuthRegMsg arm) {
 
         sendMsg(arm);
         AbstractMessage am = readMsg();
-        if (am instanceof ServerOkMessage) {
-            ServerOkMessage som = (ServerOkMessage) am;
+        if (am instanceof ServerOkMsg) {
+            ServerOkMsg som = (ServerOkMsg) am;
             if (som.isOk()) {
                 try {
                     System.out.println(som.getMsg());
@@ -74,10 +71,7 @@ public class AuthRegController extends AbstractController {
                     System.out.println("Exit");
                 }
             } else {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setHeaderText("Result: ");
-                alert.setContentText(som.getMsg());
-                alert.show();
+                alertMsg(som.getMsg());
             }
         }
     }

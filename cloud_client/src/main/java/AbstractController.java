@@ -1,6 +1,7 @@
 import io.netty.handler.codec.serialization.ObjectDecoderInputStream;
 import io.netty.handler.codec.serialization.ObjectEncoderOutputStream;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Alert;
 import messages.AbstractMessage;
 
 import java.io.IOException;
@@ -51,6 +52,13 @@ public abstract class AbstractController implements Initializable {
         return false;
     }
 
+    public static void alertMsg(String msg) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setHeaderText("Result: ");
+        alert.setContentText(msg);
+        alert.show();
+    }
+
 
     public static void socketClose() {
         try {
@@ -60,4 +68,6 @@ public abstract class AbstractController implements Initializable {
             e.printStackTrace();
         }
     }
+
+
 }

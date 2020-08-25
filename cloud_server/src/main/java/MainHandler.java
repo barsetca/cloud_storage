@@ -32,8 +32,8 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 
-        if (msg instanceof AuthRegMessage) {
-            AuthRegMessage arm = (AuthRegMessage) msg;
+        if (msg instanceof AuthRegMsg) {
+            AuthRegMsg arm = (AuthRegMsg) msg;
             String login = arm.getLogin();
             String password = arm.getPassword();
             String storagePass = userStorage.get(login);
@@ -64,9 +64,9 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
             System.out.println(userName);
         }
 
-        if (msg instanceof FileRequestMessage) {
+        if (msg instanceof FileRequestMsg) {
             new Thread(() -> {
-                FileRequestMessage frm = (FileRequestMessage) msg;
+                FileRequestMsg frm = (FileRequestMsg) msg;
                 Path filePath = Paths.get(pathUserDir.toString(), frm.getFileName());
                 if (Files.exists(filePath)) {
                     File file = new File(filePath.toString());
@@ -77,7 +77,7 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
                     if (file.length() % bufSize != 0) {
                         partsCount++;
                     }
-                    FileSendMessage fsm = new FileSendMessage(file.getName(), -1, partsCount, new byte[bufSize]);
+                    FileSendMsg fsm = new FileSendMsg(file.getName(), -1, partsCount, new byte[bufSize]);
                     try (FileInputStream fis = new FileInputStream(file)) {
                         for (int i = 0; i < partsCount; i++) {
                             int read = fis.read(fsm.partContent);
@@ -96,9 +96,9 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
                 }
             }).start();
         }
-        if (msg instanceof FileSendMessage) {
+        if (msg instanceof FileSendMsg) {
             try {
-                FileSendMessage fsm = (FileSendMessage) msg;
+                FileSendMsg fsm = (FileSendMsg) msg;
                 Path filePath = Paths.get(pathUserDir.toString(), fsm.fileName);
 
                 if (fsm.partNumber == 1) {
@@ -123,7 +123,7 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
             }
         }
 
-        if (msg instanceof FilesListRequest) {
+        if (msg instanceof FilesListRequestMsg) {
             List<FileInfo> cloudList = new ArrayList<>();
 
             File dir = new File(pathUserDir.toString());
@@ -133,27 +133,27 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
                     cloudList.add(new FileInfo(Paths.get(pathUserDir.toString(), fileName).normalize().toAbsolutePath()));
                 }
             }
-            CloudInfoList cil = new CloudInfoList(cloudList);
+            CloudInfoListSendMsg cil = new CloudInfoListSendMsg(cloudList);
             ctx.writeAndFlush(cil);
             cil.getListFileInfo().forEach(fi -> System.out.println("Name " + fi.getFileName() + " size " + fi.getSize()));
             System.out.println("File list sent");
 
         }
 
-        if (msg instanceof FileDeleteMessage) {
-            FileDeleteMessage fdm = (FileDeleteMessage) msg;
+        if (msg instanceof FileDeleteMsg) {
+            FileDeleteMsg fdm = (FileDeleteMsg) msg;
             Files.deleteIfExists(Paths.get(pathUserDir.toString(), fdm.getFileName()));
         }
     }
 
     private void closeAccess(ChannelHandlerContext ctx, String s) {
-        ServerOkMessage som = new ServerOkMessage(s, false);
+        ServerOkMsg som = new ServerOkMsg(s, false);
         ctx.writeAndFlush(som);
     }
 
-    private void openAccess(ChannelHandlerContext ctx, AuthRegMessage arm) {
+    private void openAccess(ChannelHandlerContext ctx, AuthRegMsg arm) {
         activeUserStorage.put(arm.getLogin(), arm.getPassword());
-        ServerOkMessage som = new ServerOkMessage("Successful", true);
+        ServerOkMsg som = new ServerOkMsg("Successful", true);
         userName = arm.getLogin();
         createUserFolder(userName);
         ctx.writeAndFlush(som);
