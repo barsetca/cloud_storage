@@ -5,8 +5,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class MainHandler extends ChannelInboundHandlerAdapter {
     @Override
@@ -33,7 +37,7 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
                                 fsm.partContent = Arrays.copyOfRange(fsm.partContent, 0, read);
                             }
                             ctx.writeAndFlush(fsm);
-                            Thread.sleep(1);
+                            Thread.sleep(10);
                             System.out.println("Send part number " + fsm.partNumber);
                         }
 
@@ -44,8 +48,55 @@ public class MainHandler extends ChannelInboundHandlerAdapter {
             }).start();
         }
         if (msg instanceof FileSendMessage) {
-//            FileSendMessage fsm = (FileSendMessage) msg;
-//            Files.write(Paths.get("serverFiles/" + fsm.getFileName()), fsm.getContent(), StandardOpenOption.CREATE);
+           // new Thread(() -> {
+                try {
+
+                    FileSendMessage fsm = (FileSendMessage) msg;
+                    String fileName = "serverFiles/" + fsm.fileName;
+                    Path filePath = Paths.get(fileName);
+
+
+                    if (fsm.partNumber == 1) {
+                        //boolean deleteIfExists = Files.deleteIfExists(filePath);
+                        if (Files.deleteIfExists(filePath)){
+                            System.out.println("Удалили существующий файл");
+                        }
+
+                        Files.write(filePath, fsm.partContent, StandardOpenOption.CREATE);
+                        System.out.println("Uploaded " + fsm.partNumber + "/" + fsm.partsCount);
+                    }
+                    if (fsm.partNumber > 1) {
+                        System.out.println("Uploaded " + fsm.partNumber + "/" + fsm.partsCount);
+                        Files.write(filePath, fsm.partContent, StandardOpenOption.APPEND);
+                    }
+                    if (fsm.partNumber == fsm.partsCount) {
+                        System.out.println("File " + fsm.fileName + " uploaded!");
+                        System.out.println(new File(fileName).length());
+                        ctx.flush();
+
+                    }
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            //}).start();
+        }
+
+        if (msg instanceof RequestFilesList) {
+
+                System.out.println("RequestFilesList");
+                List<String> cloudFilesList = new ArrayList<>();
+
+                File dir = new File("serverFiles/");
+                String[] dirList = dir.list();
+                if (dirList != null) {
+                    cloudFilesList.addAll(Arrays.asList(dir.list()));
+                }
+                CloudFilesList cfl = new CloudFilesList(cloudFilesList);
+                ctx.writeAndFlush(cfl);
+            System.out.println("Список отправлен");
+
         }
 
         if (msg instanceof FileDeleteMessage) {
