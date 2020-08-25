@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane prefHeight="400.0" prefWidth="600.0" style="-fx-background-color: #2E3348;" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="AuthRegController">
+   <AnchorPane layoutY="107.0" prefHeight="293.0" prefWidth="600.0" style="-fx-background-color: #fafafa;">
+      <Button fx:id="reg" layoutX="23.0" layoutY="231.0" mnemonicParsing="false" onAction="#regCommand" prefHeight="42.0" prefWidth="250.0" style="-fx-background-color: #2E3348;" text="Зарегистрироваться" textFill="#ced3d7">
+         <font>
+            <Font name="Bookman Old Style Bold Italic" size="18.0" />
+         </font>
+      </Button>
+      <TextField fx:id="login" layoutX="147.0" layoutY="68.0" prefHeight="33.0" prefWidth="309.0" promptText="Логин">
+         <font>
+            <Font size="17.0" />
+         </font>
+      </TextField>
+      <PasswordField fx:id="password" layoutX="147.0" layoutY="134.0" prefHeight="42.0" prefWidth="309.0" promptText="Пароль">
+         <font>
+            <Font size="17.0" />
+         </font>
+      </PasswordField>
+      <Button fx:id="auth" layoutX="302.0" layoutY="231.0" mnemonicParsing="false" onAction="#authCommand" prefHeight="42.0" prefWidth="274.0" style="-fx-background-color: #2E3348;" text="Войти" textFill="#ced3d7">
+         <font>
+            <Font name="Bookman Old Style Bold Italic" size="18.0" />
+         </font>
+      </Button>
+   </AnchorPane>
+   <Label layoutX="190.0" layoutY="35.0" text="CloudService" textFill="#ced3d7">
+      <font>
+         <Font name="Bookman Old Style Bold Italic" size="35.0" />
+      </font>
+   </Label>
+</AnchorPane>

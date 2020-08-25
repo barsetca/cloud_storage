@@ -8,10 +8,16 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
-        Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
+//        Parent root = FXMLLoader.load(getClass().getResource("main.fxml"));
+//        primaryStage.setTitle("Cloud Service");
+//        primaryStage.setScene(new Scene(root));
+//        primaryStage.show();
+
+        Parent root = FXMLLoader.load(getClass().getResource("auth_reg.fxml"));
         primaryStage.setTitle("Cloud Service");
         primaryStage.setScene(new Scene(root));
         primaryStage.show();
+
     }
 
 
