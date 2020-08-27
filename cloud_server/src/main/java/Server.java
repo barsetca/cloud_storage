@@ -24,11 +24,11 @@ public class Server {
                                     new ObjectEncoder(),
                                     new MainHandler()
                             );
+                            System.out.println("Client connected!");
                         }
+
                     });
-//                    .childOption(ChannelOption.SO_KEEPALIVE, true)
-//                    .childOption(ChannelOption.WRITE_BUFFER_HIGH_WATER_MARK, 1024 * 1024 * 20)
-//                    .childOption(ChannelOption.TCP_NODELAY, true);
+            System.out.println("Server is running!");
             ChannelFuture future = b.bind(8189).sync();
             future.channel().closeFuture().sync();
         } finally {
